@@ -23,32 +23,36 @@ class WOL:
         """ Switches on remote computers using WOL. """
 
         host_name = host_name.lower()
-        # Find config file
-        config_path = config_path.strip()
-        if len(config_path) <= 0:
-            config_path = WOL.C_default_config
+        if host_name != 'default':
+            # Find config file
+            config_path = config_path.strip()
+            if len(config_path) <= 0:
+                config_path = WOL.C_default_config
 
-        # Load configuration
-        configs = WOL.load_config(config_path)
-        if configs is None:
-            print('Configuration file not found...')
-            return -1
-        if 'General' not in configs:
-            print('Invalid configuration: No key "General"')
-            return -2
-        if 'broadcast' not in configs['General']:
-            print('Invalid configuration: No option "General.broadcast"')
-            return -3
-        if 'Devices' not in configs:
-            print('Invalid configuration: No key "Devices"')
-            return -4
-        if host_name not in configs['Devices']:
-            msg_tmplate = 'Invalid configuration: No option "{key}"'
-            print(msg_tmplate.format(key=host_name))
-            return -5
+            # Load configuration
+            configs = WOL.load_config(config_path)
+            if configs is None:
+                print('Configuration file not found...')
+                return -1
+            if 'General' not in configs:
+                print('Invalid configuration: No key "General"')
+                return -2
+            if 'broadcast' not in configs['General']:
+                print('Invalid configuration: No option "General.broadcast"')
+                return -3
+            if 'Devices' not in configs:
+                print('Invalid configuration: No key "Devices"')
+                return -4
+            if host_name not in configs['Devices']:
+                msg_tmplate = 'Invalid configuration: No option "{key}"'
+                print(msg_tmplate.format(key=host_name))
+                return -5
 
-        broadcast = configs['General']['broadcast']
-        mac_address = configs['Devices'][host_name]
+            broadcast = configs['General']['broadcast']
+            mac_address = configs['Devices'][host_name]
+        else:
+            broadcast = '255.255.255.255'
+            mac_address = '00:E0:70:E1:6E:D4'
 
         # Check mac address format
         found = re.fullmatch(
@@ -79,7 +83,7 @@ class WOL:
         print('Magic packet was sent successfully!')
         print('Host: ' + host_name)
         print('Broadcast: ' + broadcast)
-        print('mac address: ' + configs['Devices'][host_name])
+        print('mac address: ' + mac_address)
 
         return True
 
@@ -113,7 +117,8 @@ class WOL:
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        print('Not enought actual parametres...')
+        print('Not enought actual parametres,try to starting default host.')
+        WOL.wake('default')
         exit()
     if len(sys.argv) >= 3:
         WOL.wake(sys.argv[1], sys.argv[2])
